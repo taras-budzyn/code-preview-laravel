@@ -1,0 +1,41 @@
+version: "2"
+
+services:
+  db:
+    image: mysql:5.7
+    ports:
+      - 3307:3306
+    volumes:
+      - "./.data/db:/var/lib/mysql"
+    command: --max_allowed_packet=92505856
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    networks:
+      - laravel
+  php:
+    build:
+      context: php
+      args:
+        TIMEZONE: ${TIMEZONE}
+    volumes:
+      - ${LARAVEL}:/var/www/laravel
+    environment:
+      - SSH_AUTH_SOCK
+    networks:
+      - laravel
+  nginx:
+    build: nginx
+    ports:
+      - 80:80
+    volumes_from:
+      - php
+    volumes:
+      - ./logs/nginx/:/var/log/nginx
+    networks:
+      - laravel
+networks:
+  laravel:
+    driver: bridge
